@@ -26,21 +26,12 @@ const chain = new BlockChain();
 chain.reassemble();
 const usersReacted = new Map();
 
-// sba
-const channelId = '404574680264081408';
-const threshold = 25;
-const timelimit = 60000;
+// env vars
+const channelId = process.env.CHANNEL_ID;
+const threshold = process.env.THRESHOLD;
+const timelimit = process.env.TIME_LIMIT;
 
-// mine
-// const channelId = '938179231458951231';
-// const threshold = 100;
-// const timelimit = 10000;
-
-// hikkikomori
-// const channelId = '983847402169593886';
-// const threshold = 15;
-// const timelimit = 60000;
-
+client.login(process.env.DISCORD_TOKEN);
 
 /**
  * 'message' event listener
@@ -219,7 +210,7 @@ client.on('messageUpdate', (oldMsg, newMsg) => {
 			.setTitle('Mining race complete!')
 			.setDescription(`${winningUser} was the first to react and won 20 coins!\n\n${result.user} won the mining race with ${result.reaction} in ${result.runTime}ms!\nYou will get ${props.get('baseReward')} coins!`)
 			.setImage(result.user.displayAvatarURL({ size: 1024, dynamic: true }))
-			.setFooter('Note: mining rewards are minted after the next event');
+			.setFooter({ text:'Note: mining rewards are minted after the next event' });
 
 		mineOnline = false;
 		eventOnline = false;
@@ -229,5 +220,3 @@ client.on('messageUpdate', (oldMsg, newMsg) => {
 		newMsg.edit({ embeds:[winEmbed] });
 	});
 });
-
-client.login(process.env.DISCORD_TOKEN);
