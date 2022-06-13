@@ -26,15 +26,10 @@ const chain = new BlockChain();
 chain.reassemble();
 const usersReacted = new Map();
 
-// sba
-const channelId = '404574680264081408';
-const threshold = 25;
-const timelimit = 60000;
-
-// mine
-// const channelId = '938179231458951231';
-// const threshold = 100;
-// const timelimit = 10000;
+// env vars
+const channelId = process.env.CHANNEL_ID;
+const threshold = process.env.THRESHOLD;
+const timelimit = process.env.TIME_LIMIT;
 
 client.login(process.env.DISCORD_TOKEN);
 
