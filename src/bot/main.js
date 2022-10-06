@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 // Require the necessary discord.js classes
-const { Client, Intents, MessageEmbed } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const BlockChain = require('../coin/blockchain');
 const Work = require('../coin/work');
 const propsReader = require('properties-reader');
@@ -10,7 +10,7 @@ const props = propsReader('./resources/coin.properties');
 const async = require('async');
 
 // Create a new client instance
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.MessageContent] });
 
 // When the client is ready, run this code (only once)
 client.once('ready', () => {
@@ -67,7 +67,7 @@ client.on('messageCreate', (msg) => {
 	else if (msg.content.match(/^\$balance.*/)) {
 		const balance = chain.getBalance(msg.author.id);
 		const channel = msg.channel;
-		const balanceEmbed = new MessageEmbed()
+		const balanceEmbed = new EmbedBuilder()
 			.setColor('#0099ff')
 			.setTitle(`${msg.author.tag}, your balance is: ${balance} coins!`)
 			.setImage('https://images.squarespace-cdn.com/content/v1/5e2372d18e3cf11ebaf2d20d/1586455217566-259FY1S9S4XVAVDP3WI7/5a105381eed609b127ec423c337f64e3.gif')
@@ -85,10 +85,10 @@ client.on('messageCreate', (msg) => {
 			console.log('event online!');
 			eventOnline = true;
 			// construct the embed
-			const eventEmbed = new MessageEmbed()
+			const eventEmbed = new EmbedBuilder()
 				.setColor('#0099ff')
 				.setTitle(`SBA Mining Event! (beta ${threshold}% spawn rate)`)
-				.setDescription('You have 60 seconds to react to this message!')
+				.setDescription(`You have ${timelimit / 1000} seconds to react to this message!`)
 				.setImage('https://images.gamebanana.com/img/ico/sprays/megamanx2.gif')
 				.setTimestamp();
 
@@ -100,10 +100,11 @@ client.on('messageCreate', (msg) => {
 					eventOnline = false;
 					eventMsgId = m.id;
 					// edit the embed and resend
-					const embedEdit = m.embeds[0];
-					embedEdit.setTitle('SBA Mining Event is Over!');
-					embedEdit.setDescription('60 seconds are up! We\'re gonna start mining now!');
-					embedEdit.setImage('https://thumbs.gfycat.com/ThunderousIdealBorzoi-size_restricted.gif');
+					let embedEdit = m.embeds[0];
+					embedEdit = EmbedBuilder.from(embedEdit)
+						.setTitle('SBA Mining Event is Over!')
+						.setDescription('60 seconds are up! We\'re gonna start mining now!')
+						.setImage('https://thumbs.gfycat.com/ThunderousIdealBorzoi-size_restricted.gif');
 					m.edit({ embeds:[embedEdit] });
 
 					console.log(`timeout reached\n -eventOnline: ${eventOnline}`);
@@ -148,9 +149,8 @@ client.on('messageReactionAdd', (msgReaction, user) => {
 	});
 
 	// edit the embed and resend it
-	const embed = msgReaction.message.embeds[0];
-	embed.setFields(embedFields);
-	embed.setImage('https://images.gamebanana.com/img/ico/sprays/megamanx2.gif');
+	let embed = msgReaction.message.embeds[0];
+	embed = EmbedBuilder.from(embed).setFields(embedFields).setImage('https://images.gamebanana.com/img/ico/sprays/megamanx2.gif');
 	msgReaction.message.edit({ embeds:[embed] });
 
 	// for the 1st user, make a new work transaction to reward them
@@ -205,7 +205,7 @@ client.on('messageUpdate', (oldMsg, newMsg) => {
 		// add winning block to the blockchain, and reward the user
 		chain.addWinningBlock(result.user.id, result.block);
 		chain.persist();
-		const winEmbed = new MessageEmbed()
+		const winEmbed = new EmbedBuilder()
 			.setColor('#0099ff')
 			.setTitle('Mining race complete!')
 			.setDescription(`${winningUser} was the first to react and won 20 coins!\n\n${result.user} won the mining race with ${result.reaction} in ${result.runTime}ms!\nYou will get ${props.get('baseReward')} coins!`)
